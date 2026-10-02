@@ -1,67 +1,91 @@
 ﻿using AutomatedThermalStationSimulator;
-using System.Xml;
+using AutomatedThermalStationSimulator.Mqtt;
+using MQTTnet;
+using System.Text.Json;
 
 public class Program
 {
-
-    public static async Task Main(string[] args)
+    public static async Task Main()
     {
-        var thermalSensor = new ThermalSensor("thermal");
-        var boilerSensor = new BoilerTemperatureSensor("boiler");
-        var currentOutputSensor = new CurrentOutputSensor("current");
-        var outputFlowMeterSensor = new OutputFlowMeterSensor("output");
-        var steamSensor = new SteamSensor("steam");
-        var turbineRotationSensor = new TurbineRotationSensor("turbine");
-        var voltageOutputSensor = new VoltageOutputSensor("voltage");
-        var waterLevelSensor = new WaterLevelSensor("water");
+        SensorConfiguration[] sensors = CreateSensors();
 
-        var attorch = new AttorchCoulometer(
-            "192.168.1.226",
-            "yoOpb8-vX_b:xr~F"
-        );
+        var factory = new MqttClientFactory();
+        using var mqttClient = factory.CreateMqttClient();
 
-        var voltmeterSensor = new VoltmeterSensor(
-            "voltmeter",
-            attorch
-        );
-        var currentSensor = new CurrentSensor(
-            "current",
-            attorch
-        );
+        var options = new MqttClientOptionsBuilder()
+            .WithTcpServer("127.0.0.1", 1883)
+            .Build();
 
-        var socSensor = new SocSensor(
-            "soc",
-            attorch
-        );
+        await mqttClient.ConnectAsync(options);
+        Console.WriteLine("Connected to MQTT broker.");
 
-        await attorch.ReadStatusAsync();
+        await RunSimulationAsync(mqttClient, sensors);
 
-        ThermalStation station = new ThermalStation();
+        await mqttClient.DisconnectAsync();
+    }
 
-        station.Sensors.Add(thermalSensor);
-        station.Sensors.Add(boilerSensor);
-        station.Sensors.Add(currentOutputSensor);
-        station.Sensors.Add(outputFlowMeterSensor);
-        station.Sensors.Add(steamSensor);
-        station.Sensors.Add(turbineRotationSensor);
-        station.Sensors.Add(voltageOutputSensor);
-        station.Sensors.Add(waterLevelSensor);
-        station.Sensors.Add(voltmeterSensor);
-        station.Sensors.Add(currentSensor);
-        station.Sensors.Add(socSensor);
+    private static SensorConfiguration[] CreateSensors()
+    {
+        return
+            [
+            new (
+                new ThermalSensor("Outside temperature"),
+                "thermalStation/1/sensors/outside/thermal",
+                "C"),
+            new (
+                new SteamSensor("Outside steam"),
+                "thermalStation/1/sensors/outside/steam",
+                "bar"),
+            new (
+                new VoltageOutputSensor("Inside voltage"),
+                "thermalStation/1/sensors/inside/voltage",
+                "V"),
+            new (
+                new CurrentOutputSensor("Inside current"),
+                "thermalStation/1/sensors/inside/current",
+                "A"),
+            ];
+    }
 
-
-        station.Monitor();
-
-        if (steamSensor.Value > 10)
+    private static async Task RunSimulationAsync(
+        IMqttClient mqttClient,
+        SensorConfiguration[] sensors)
+    {  
+        for (int iteration = 1; iteration <= 10; iteration++)
         {
-            station.FuelCombustionSystem.TurnOn();
+            Console.WriteLine($"Iteration {iteration}.");
+
+
+            foreach (var sensor in sensors)
+            {
+                await PublichSensorReadingAsync(mqttClient, sensor);
+            }
+
+            Console.WriteLine();
+            await Task.Delay(TimeSpan.FromSeconds(2));
         }
-        else
+    }
+
+    private static async Task PublichSensorReadingAsync(
+        IMqttClient mqttClient,
+        SensorConfiguration configuration)
+    {
+        configuration.Sensor.ReadValue();
+
+        string payload = JsonSerializer.Serialize(new
         {
-            station.FuelCombustionSystem.TurnOff();
-        }
+            value = Math.Round(configuration.Sensor.Value, 2),
+            unit = configuration.Unit,
+            measuredAtUtc = DateTimeOffset.UtcNow
+        });
 
+        var message = new MqttApplicationMessageBuilder()
+            .WithTopic(configuration.Topic)
+            .WithPayload(payload)
+            .Build();
 
+        await mqttClient.PublishAsync(message);
+
+        Console.WriteLine($"Published {configuration.Topic} -> {payload} ");
     }
 }
