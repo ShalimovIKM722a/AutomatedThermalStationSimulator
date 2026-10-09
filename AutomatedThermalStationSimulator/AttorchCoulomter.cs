@@ -81,18 +81,37 @@ public class AttorchCoulometer
         _port = port;
     }
 
+    private void SetUnavailable()
+    {
+        Voltage = -10000;
+        ChargeCurrent = -10000;
+        DischargeCurrent = -10000;
+        Current = -10000;
+        Capacity = -10000;
+        Temperature = -10000;
+        ShuntType = "unknown";
+        Dps = new Dictionary<string, JsonElement>();
+    }
+
     public async Task ReadStatusAsync()
     {
-        await ConnectAsync();
-
         try
         {
-            await HandshakeAsync();
-            await RequestStatusAsync();
+            await ConnectAsync()
+            .WaitAsync(TimeSpan.FromSeconds(2));
+
+            await HandshakeAsync()
+                .WaitAsync(TimeSpan.FromSeconds(2));
+
+            await RequestStatusAsync()
+                .WaitAsync(TimeSpan.FromSeconds(2));
+        }
+        catch
+        {
+            SetUnavailable();
         }
         finally
         {
-            Console.WriteLine("Turn on attorch cw24");
             Disconnect();
         }
     }
