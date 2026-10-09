@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="AutomatedThermalStationSimulator/AutomatedThermalStationSimulator.csproj" />
+  <Project Path="Models/Models.csproj" Id="692b5425-83b8-4877-80ec-f0740aac4f55" />
 </Solution>

@@ -1,4 +1,4 @@
-﻿namespace AutomatedThermalStationSimulator;
+﻿namespace Models;
 
 public class SocSensor : Sensor
 {
