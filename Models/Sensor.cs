@@ -1,4 +1,4 @@
-﻿namespace AutomatedThermalStationSimulator;
+﻿namespace Models;
 public abstract class Sensor
 {
     public string Name { get; set; }

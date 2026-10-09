@@ -1,4 +1,4 @@
-﻿namespace AutomatedThermalStationSimulator.Systems;
+﻿namespace Models.Systems;
 
 public class FuelCombustion
 {

@@ -1,6 +1,6 @@
-﻿namespace AutomatedThermalStationSimulator;
+﻿namespace Models;
 
-class TurbineRotationSensor : Sensor
+public class TurbineRotationSensor : Sensor
 {
     public TurbineRotationSensor(string name) : base(name)
     {

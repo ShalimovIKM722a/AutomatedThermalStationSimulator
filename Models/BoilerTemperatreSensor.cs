@@ -1,4 +1,5 @@
-﻿namespace AutomatedThermalStationSimulator;
+﻿namespace Models;
+
 public class BoilerTemperatureSensor : Sensor
 {
     public BoilerTemperatureSensor(string name) : base(name)

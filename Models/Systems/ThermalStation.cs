@@ -1,6 +1,8 @@
-﻿using AutomatedThermalStationSimulator.Systems;
+﻿using Models.Systems;
 
-namespace AutomatedThermalStationSimulator;
+namespace Models;
+
+
 public class ThermalStation
 {
     public List<Sensor> Sensors { get; set; }
