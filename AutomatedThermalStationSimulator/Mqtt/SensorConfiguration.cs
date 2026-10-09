@@ -1,7 +1,6 @@
 ﻿using Models;
 namespace AutomatedThermalStationSimulator.Mqtt;
 
-
 public class SensorConfiguration
 {
     public Sensor Sensor { get; set; }
