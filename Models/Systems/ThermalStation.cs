@@ -1,7 +1,5 @@
 ﻿using Models.Systems;
-
 namespace Models;
-
 
 public class ThermalStation
 {
