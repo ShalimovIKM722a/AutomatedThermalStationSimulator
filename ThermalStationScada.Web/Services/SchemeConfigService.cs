@@ -1,0 +1,82 @@
+﻿using Models;
+using Models.Entities;
+
+namespace ThermalStationScada.Web.Services;
+
+public class SchemeConfigService
+{
+    private readonly List<SensorView> _sensors = new List<SensorView>()
+    {
+        new SensorView
+        {
+            Name = "Температура котла",
+            Topic = "thermalStation/1/sensors/boiler/temperature",
+            X = 620, Y = 205
+        },
+        new SensorView
+        {
+            Name = "Температура зовні",
+            Topic = "thermalStation/1/sensors/outside/thermal",
+            X = 90, Y = 160
+        },
+        new SensorView
+        {
+            Name = "Рівень води",
+            Topic = "thermalStation/1/sensors/boiler/waterLevel",
+            X = 95, Y = 260
+        },
+        new SensorView
+        {
+            Name = "Тиск пари",
+            Topic = "thermalStation/1/sensors/outside/steam",
+            X = 720, Y = 305
+        },
+        new SensorView
+        {
+            Name = "Оберти турбіни",
+            Topic = "thermalStation/1/sensors/turbine/rotation",
+            X = 1045, Y = 245
+        },
+        new SensorView
+        {
+            Name = "Вхідний струм",
+            Topic = "thermalStation/1/sensors/inside/current",
+            X = 180, Y = 490
+        },
+        new SensorView
+        {
+            Name = "Вихідний струм",
+            Topic = "thermalStation/1/sensors/inside/current",
+            X = 1430, Y = 400
+        },
+        new SensorView
+        {
+            Name = "Вхідна напруга",
+            Topic = "thermalStation/1/sensors/inside/voltageInput",
+            X = 425, Y = 600
+        },
+        new SensorView
+        {
+            Name = "Вихідна напруга",
+            Topic = "thermalStation/1/sensors/output/voltagOutput",
+            X = 1470, Y = 315
+        },
+        new SensorView
+        {
+            Name = "Рівень заряду акумулятора",
+            Topic = "thermalStation/1/sensors/battery/soc",
+            X = 1645, Y = 405
+        },
+        new SensorView
+        {
+            Name = "Витрата води",
+            Topic = "thermalStation/1/sensors/boiler/outputFlow",
+            X = 425, Y = 500
+        }
+    };
+
+    public IReadOnlyList<SensorView> GetSensors()
+    {
+        return _sensors;
+    }
+}

@@ -3,6 +3,8 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
+namespace Models;
+
 public class AttorchCoulometer
 {
     private const int DefaultPort = 6668;

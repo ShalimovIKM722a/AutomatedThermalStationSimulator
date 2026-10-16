@@ -11,7 +11,14 @@ public class SocSensor : Sensor
 
     public override void ReadValue()
     {
-        Value = _device.Capacity;
+        if (_device.Capacity < 0 || _device.Capacity > 100)
+        {
+            Value = 100;
+        }
+        else
+        {
+            Value = _device.Capacity;
+        }
         Console.WriteLine($"{Name} measured state of charge: {Value:F2} %");
     }
 }
