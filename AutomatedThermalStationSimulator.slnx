@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="AutomatedThermalStationSimulator/AutomatedThermalStationSimulator.csproj" />
   <Project Path="Models/Models.csproj" Id="692b5425-83b8-4877-80ec-f0740aac4f55" />
+  <Project Path="ThermalStationScada.Web/ThermalStationScada.Web.csproj" Id="35279a32-92e7-4049-9a68-e03a3e480578" />
 </Solution>

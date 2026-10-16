@@ -6,6 +6,7 @@ public class CurrentSensor : Sensor
 
     public CurrentSensor(string name, AttorchCoulometer device) : base(name)
     {
+        Name = name;
         _device = device;
     }
 

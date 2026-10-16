@@ -1,0 +1,31 @@
+﻿@using Models.Entities
+@using System.Globalization
+@model IReadOnlyCollection<SensorView>
+
+@{
+    ViewData["Title"] = "Мнемосхема";
+}
+
+<h2>Мнемосхема теплової станції</h2>
+
+<div class="scheme">
+    @foreach (SensorView s in Model)
+    {
+        var x = (s.X * 100.0 / 1728)
+            .ToString("0.###", CultureInfo.InvariantCulture);
+
+        var y = (s.Y * 100.0 / 1024)
+            .ToString("0.###", CultureInfo.InvariantCulture);
+
+        <div class="sensor"
+             data-topic="@s.Topic"
+             style="left: @x%; top: @y%;">
+            <div class="name">@s.Name</div>
+            <div class="value">—</div>
+        </div>
+    }
+</div>
+
+@section Scripts {
+    <script src="~/js/scheme.js"></script>
+}
