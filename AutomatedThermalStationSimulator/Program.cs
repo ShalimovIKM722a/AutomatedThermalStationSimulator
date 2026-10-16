@@ -8,7 +8,7 @@ public class Program
 {
     public static async Task Main()
     {
-        SensorConfiguration[] sensors = CreateSensors();
+        SensorConfiguration[] sensors = await CreateSensors();
 
         var factory = new MqttClientFactory();
         using var mqttClient = factory.CreateMqttClient();
@@ -32,12 +32,16 @@ public class Program
         }
     }
 
-    private static SensorConfiguration[] CreateSensors()
+    private static async Task<SensorConfiguration[]> CreateSensors()
     {
         var attorch = new AttorchCoulometer(
            "192.168.1.226",
            "yoOpb8-vX_b:xr~F"
         );
+        _ = attorch.StartAsync(
+        connectionTimeoutSeconds: 5,
+        retryDelayMilliseconds: 3000,
+        pollingIntervalMilliseconds: 1000);
 
         return
         [

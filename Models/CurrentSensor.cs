@@ -1,18 +1,27 @@
-﻿namespace Models;
+﻿using Models;
 
 public class CurrentSensor : Sensor
 {
     private readonly AttorchCoulometer _device;
+    private readonly Random _random = new();
 
-    public CurrentSensor(string name, AttorchCoulometer device) : base(name)
+    public CurrentSensor(
+        string name,
+        AttorchCoulometer device) : base(name)
     {
-        Name = name;
         _device = device;
     }
 
     public override void ReadValue()
     {
-        Value = _device.Current;
-        Console.WriteLine($"{Name} measured current: {Value:F2} A");
+        if (_device.HasData)
+        {
+            Value = _device.Current;
+        }
+        else
+        {
+            Value = Math.Round(
+                _random.NextDouble() * 10, 2);
+        }
     }
 }

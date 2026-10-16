@@ -51,12 +51,6 @@ public class SchemeConfigService
         },
         new SensorView
         {
-            Name = "Вхідна напруга",
-            Topic = "thermalStation/1/sensors/inside/voltageInput",
-            X = 425, Y = 600
-        },
-        new SensorView
-        {
             Name = "Вихідна напруга",
             Topic = "thermalStation/1/sensors/output/voltagOutput",
             X = 1470, Y = 315

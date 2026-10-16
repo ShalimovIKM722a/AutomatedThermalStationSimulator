@@ -3,8 +3,6 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-namespace Models;
-
 public class AttorchCoulometer
 {
     private const int DefaultPort = 6668;
@@ -33,9 +31,9 @@ public class AttorchCoulometer
     private byte[]? _sessionKey;
 
     private uint _sequence = 1;
+    private CancellationTokenSource? _cts;
 
-    public bool IsConnected =>
-        _client?.Connected == true;
+    public bool IsConnected { get; private set; }
 
     public double Voltage { get; private set; }
 
@@ -50,6 +48,8 @@ public class AttorchCoulometer
     public double Temperature { get; private set; }
 
     public string ShuntType { get; private set; } = "unknown";
+
+    public bool HasData { get; private set; }
 
     public Dictionary<string, JsonElement> Dps { get; private set; } = new();
 
@@ -83,59 +83,113 @@ public class AttorchCoulometer
         _port = port;
     }
 
-    private void SetUnavailable()
+    public async Task<bool> ConnectAsync(int timeoutSeconds = 2)
     {
-        Voltage = -10000;
-        ChargeCurrent = -10000;
-        DischargeCurrent = -10000;
-        Current = -10000;
-        Capacity = -10000;
-        Temperature = -10000;
-        ShuntType = "unknown";
-        Dps = new Dictionary<string, JsonElement>();
+        Disconnect();
+
+        try
+        {
+            _client = new TcpClient();
+            _client.NoDelay = true;
+
+            using var cts = new CancellationTokenSource(
+                TimeSpan.FromSeconds(timeoutSeconds));
+
+            await _client.ConnectAsync(
+                _ipAddress,
+                _port,
+                cts.Token);
+
+            _stream = _client.GetStream();
+
+            return true;
+        }
+        catch (Exception)
+        {
+            Disconnect();
+            return false;
+        }
     }
 
-    public async Task ReadStatusAsync()
+    public async Task<bool> ReadStatusAsync(int timeoutSeconds = 5)
     {
         try
         {
-            await ConnectAsync()
-            .WaitAsync(TimeSpan.FromSeconds(2));
+            if (!await ConnectAsync(timeoutSeconds))
+                return false;
 
-            await HandshakeAsync()
-                .WaitAsync(TimeSpan.FromSeconds(2));
+            await HandshakeAsync();
+            await RequestStatusAsync();
 
-            await RequestStatusAsync()
-                .WaitAsync(TimeSpan.FromSeconds(2));
+            IsConnected = true;
+            HasData = true;
+
+            return true;
         }
-        catch
+        catch (Exception)
         {
-            SetUnavailable();
+            IsConnected = false;
+            return false;
+        }
+        finally
+        {
+            _stream?.Close();
+            _client?.Close();
+
+            _stream = null;
+            _client = null;
+            _sessionKey = null;
+        }
+    }
+
+    public async Task StartAsync(
+        int connectionTimeoutSeconds = 5,
+        int retryDelayMilliseconds = 3000,
+        int pollingIntervalMilliseconds = 1000)
+    {
+        if (_cts != null)
+            return;
+
+        _cts = new CancellationTokenSource();
+        CancellationToken token = _cts.Token;
+
+        try
+        {
+            while (!token.IsCancellationRequested)
+            {
+                bool success = await ReadStatusAsync(connectionTimeoutSeconds);
+
+                if (success)
+                {
+                    await Task.Delay(pollingIntervalMilliseconds, token);
+                }
+                else
+                {
+                    await Task.Delay(retryDelayMilliseconds, token);
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            // Normal shutdown.
         }
         finally
         {
             Disconnect();
+            _cts?.Dispose();
+            _cts = null;
         }
     }
 
-    public async Task ConnectAsync()
+    public void Stop()
     {
-        if (IsConnected)
-            return;
-
-        _client = new TcpClient();
-
-        _client.NoDelay = true;
-
-        await _client.ConnectAsync(
-            _ipAddress,
-            _port);
-
-        _stream = _client.GetStream();
+        _cts?.Cancel();
     }
 
     public void Disconnect()
     {
+        IsConnected = false;
+
         _stream?.Close();
         _client?.Close();
 
