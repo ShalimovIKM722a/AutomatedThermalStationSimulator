@@ -1,31 +1,55 @@
-﻿@using Models.Entities
-@using System.Globalization
-@model IReadOnlyCollection<SensorView>
-
+﻿@using System.Globalization
+@using Models.Entities
 @{
-    ViewData["Title"] = "Мнемосхема"; 
+    ViewData["Title"] = "Мнемосхема";
+var uk = new System.Globalization.CultureInfo("uk-UA");
+DateTime today = DateTime.Today;
+DateTime first = new DateTime(today.Year, today.Month, 1);
+int offset = ((int)first.DayOfWeek + 6) % 7; 
+int days = DateTime.DaysInMonth(today.Year, today.Month);
 }
-
-<h2>Мнемосхема теплової станції</h2>
-
+<h2>Мнемосхема теплиці</h2>
+<div class="scada-page">
 <div class="scheme">
-    @foreach (SensorView s in Model)
-    {
-        var x = (s.X * 100.0 / 1728)
-            .ToString("0.###", CultureInfo.InvariantCulture);
+        @foreach (SensorView s in Model)
+        {
+            var x = (s.X * 100.0 / 1728)
+                .ToString("0.###", CultureInfo.InvariantCulture);
 
-        var y = (s.Y * 100.0 / 1024)
-            .ToString("0.###", CultureInfo.InvariantCulture);
+            var y = (s.Y * 100.0 / 1024)
+                .ToString("0.###", CultureInfo.InvariantCulture);
 
-        <div class="sensor"
-             data-topic="@s.Topic"
-             style="left: @x%; top: @y%;">
-            <div class="name">@s.Name</div>
-            <div class="value">—</div>
-        </div>
-    }
+            <div class="sensor"
+                 data-topic="@s.Topic"
+                 style="left: @x%; top: @y%;">
+                <div class="name">@s.Name</div>
+                <div class="value">—</div>
+            </div>
+        }
 </div>
-
+<table class="cal">
+<caption>@uk.TextInfo.ToTitleCase(today.ToString("MMMM yyyy", uk))
+</caption>
+<tr><th>Пн</th><th>Вт</th><th>Ср</th><th>Чт</th><th>Пт</th>
+<th>Сб</th><th>Нд</th></tr>
+<tr>
+@for (int i = 0; i < offset; i++)
+{
+<td></td>
+}
+@for (int d = 1; d <= days; d++)
+{
+bool isWeekend = (offset + d - 1) % 7 >= 5;
+string css = d == today.Day ? "today" : (isWeekend ? "weekend" : "");
+<td class="@css">@d</td>
+if ((offset + d) % 7 == 0)
+{
+@:</tr><tr>
+}
+}
+</tr>
+</table>
+</div>
 @section Scripts {
-    <script src="~/js/scheme.js"></script>
+<script src="~/js/scheme.js"></script>
 }
