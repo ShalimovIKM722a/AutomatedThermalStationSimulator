@@ -1,5 +1,4 @@
-﻿using AspNetCoreGeneratedDocument;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using ThermalStationScada.Web.Services;
 
 namespace ThermalStationScada.Web.Controllers
