@@ -4,6 +4,7 @@
     ).forEach(el => {
         el.querySelector('.value').textContent =
             `${r.value} ${r.unit}`;
+        el.classList.toggle('alarm', r.value > Number(el.dataset.max));
     });
 }
 
