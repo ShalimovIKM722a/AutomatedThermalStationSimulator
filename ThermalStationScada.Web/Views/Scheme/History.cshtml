@@ -1,0 +1,16 @@
+﻿<h2>Історія показань</h2>
+
+<a asp-action="Index"> ← До мнемосхеми</a>
+
+<table class=" table table-sm mt-2">
+    <tr><th>Час</th><th>Топік</th><th>Значення</th></tr>
+
+    @foreach(var s in Model)
+    {
+        <tr>
+            <td>@s.MeasuredAtUtc.ToLocalTime().ToString("dd.MM HH:mm:ss")</td>
+            <td>@s.Topic</td>
+            <td>@s.Value</td>
+        </tr>
+    }
+</table>

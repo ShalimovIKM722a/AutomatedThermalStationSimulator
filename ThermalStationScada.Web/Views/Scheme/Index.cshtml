@@ -19,9 +19,7 @@ int days = DateTime.DaysInMonth(today.Year, today.Month);
             var y = (s.Y * 100.0 / 1024)
                 .ToString("0.###", CultureInfo.InvariantCulture);
 
-            <div class="sensor"
-                 data-topic="@s.Topic"
-                 style="left: @x%; top: @y%;">
+            <div class="sensor" data-topic="@s.Topic" data-max="@s.Max" style="left: @(s.X)px; top: @(s.Y)px;">
                 <div class="name">@s.Name</div>
                 <div class="value">—</div>
             </div>
@@ -50,6 +48,9 @@ if ((offset + d) % 7 == 0)
 </tr>
 </table>
 </div>
+<form method="post" asp-action="Save">
+    <button class="btn btn-primary">Зберегти покази</button>
+</form>
 @section Scripts {
 <script src="~/js/scheme.js"></script>
 }
