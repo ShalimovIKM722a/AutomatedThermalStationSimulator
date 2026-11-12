@@ -1,7 +1,9 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ThermalStationScada.Web.Data;
 using ThermalStationScada.Web.Services;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -14,6 +16,18 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
     .AddEntityFrameworkStores<ApplicationDbContext>();
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddAuthorization(options =>
+{
+    options.FallbackPolicy = new AuthorizationPolicyBuilder()
+                                .RequireAuthenticatedUser()
+                                .Build();
+
+    options.AddPolicy("CanReadSavings", policy =>
+    {
+        policy.RequireAuthenticatedUser();
+    });
+});
 
 builder.Services.AddSingleton<LiveValuesCache>();
 builder.Services.AddSingleton<SchemeConfigService>();
@@ -34,16 +48,17 @@ else
 }
 
 app.UseHttpsRedirection();
+app.UseStaticFiles();
+
 app.UseRouting();
 
-app.UseAuthorization();
+app.UseAuthentication();
 
-app.MapStaticAssets();
+app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Scheme}/{action=Index}/{id?}");
-
 app.MapRazorPages();
 
 app.Run();
