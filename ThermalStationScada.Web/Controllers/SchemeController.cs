@@ -1,10 +1,12 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ThermalStationScada.Web.Data;
 using ThermalStationScada.Web.Services;
-
 namespace ThermalStationScada.Web.Controllers;
 
+
+[Authorize]
 public class SchemeController : Controller
 {
     private readonly LiveValuesCache _cache;
@@ -30,6 +32,8 @@ public class SchemeController : Controller
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
+    [Authorize(Policy = "CanReadSavings")]
     public async Task<IActionResult> Save()
     {
         foreach (var r in _cache.GetAll())

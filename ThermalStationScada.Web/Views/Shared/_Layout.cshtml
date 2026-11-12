@@ -49,6 +49,23 @@
                                asp-controller="Home"
                                asp-action="Privacy">Privacy</a>
                         </li>
+
+                        @if (User.Identity != null && User.Identity.IsAuthenticated)
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark"
+                                    asp-area=""
+                                    asp-controller="Scheme"
+                                    asp-action="Index">Scheme</a>
+                                </li>
+
+                                <li class="nav-item">
+                                    <a class="nav-link text-dark"
+                                    asp-area=""
+                                    asp-controller="Scheme"
+                                    asp-action="History">History</a>
+                                </li>
+                            }
                     </ul>
 
                     <div class="scada-clock">
