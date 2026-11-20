@@ -73,4 +73,18 @@ public class SchemeConfigService
     {
         return _sensors;
     }
+
+    public bool UpdateMax(string topic, int max)
+    {
+        foreach (SensorView sensor in _sensors)
+        {
+            if (sensor.Topic == topic)
+            {
+                sensor.Max = max;
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
