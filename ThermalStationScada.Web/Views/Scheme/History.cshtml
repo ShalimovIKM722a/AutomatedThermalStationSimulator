@@ -3,7 +3,7 @@
 <a asp-action="Index"> ← До мнемосхеми</a>
 
 <table class=" table table-sm mt-2">
-    <tr><th>Час</th><th>Топік</th><th>Значення</th></tr>
+    <tr><th>Час</th><th>Топік</th><th>Значення</th><th>Збережено</th></tr>
 
     @foreach(var s in Model)
     {
@@ -11,6 +11,7 @@
             <td>@s.MeasuredAtUtc.ToLocalTime().ToString("dd.MM HH:mm:ss")</td>
             <td>@s.Topic</td>
             <td>@s.Value</td>
+            <td>@s.SavedBy</td>
         </tr>
     }
 </table>

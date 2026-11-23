@@ -1,0 +1,15 @@
+﻿<h2> Login journal</h2>
+
+<table class=" table table-sm mt-2">
+    <tr><th>Час</th><th>Користувач</th><th>Результат</th><th>Ip</th></tr>
+
+    @foreach (var s in Model)
+    {
+        <tr class="@(s.Succeeded ? "" : "table-danger")">
+            <td>@s.TimeUtc.ToLocalTime().ToString("dd.MM HH:mm:ss")</td>
+            <td>@s.UserName</td>
+            <td>@s.Result</td>
+            <td>@s.IpAddress</td>
+        </tr>
+    }
+</table>

@@ -17,7 +17,7 @@ namespace ThermalStationScada.Web.Data.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.13")
+                .HasAnnotation("ProductVersion", "8.0.23")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -224,6 +224,37 @@ namespace ThermalStationScada.Web.Data.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("ThermalStationScada.Web.Data.LoginEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("IpAddress")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Result")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("Succeeded")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTimeOffset>("TimeUtc")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LoginEvents");
+                });
+
             modelBuilder.Entity("ThermalStationScada.Web.Data.SensorSample", b =>
                 {
                     b.Property<int>("Id")
@@ -234,6 +265,10 @@ namespace ThermalStationScada.Web.Data.Migrations
 
                     b.Property<DateTimeOffset>("MeasuredAtUtc")
                         .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("SavedBy")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Topic")
                         .IsRequired()

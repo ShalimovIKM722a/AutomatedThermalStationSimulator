@@ -1,0 +1,20 @@
+﻿@using Models.Entities
+<h2>Sensor settings</h2>
+<p class="text-success">@TempData["Message"]</p>
+<table class="table">
+    <tr><th>Sensor</th><th>Alarm above</th><th></th></tr>
+    @foreach (SensorView s in Model)
+    {
+        <tr>
+            <td>@s.Name</td>
+            <td colspan="2">
+                <form method="post" asp-action="UpdateMax" class="d-flex gap-2">
+                    <input type="hidden" name="topic" value="@s.Topic" />
+                    <input type="number" name="max" value="@s.Max"
+                           class="form-control w-auto" />
+                    <button class="btn btn-warning">Save</button>
+                </form>
+            </td>
+        </tr>
+    }
+</table>

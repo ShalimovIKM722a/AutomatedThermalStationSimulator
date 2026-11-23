@@ -1,7 +1,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using System.CodeDom.Compiler;
+using ThermalStationScada.Web.Controllers;
 using ThermalStationScada.Web.Data;
+using ThermalStationScada.Web.Security;
 using ThermalStationScada.Web.Services;
 
 
@@ -13,9 +16,43 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-builder.Services.AddDefaultIdentity<IdentityUser>(options => options.SignIn.RequireConfirmedAccount = true)
-    .AddEntityFrameworkStores<ApplicationDbContext>();
+builder.Services.AddDefaultIdentity<IdentityUser>(options =>
+{
+    options.SignIn.RequireConfirmedAccount = false;
+
+    options.Password.RequiredLength = 6;
+    options.Password.RequireDigit = true;
+    options.Password.RequireUppercase = false;
+    options.Password.RequireNonAlphanumeric = false;
+
+    options.Lockout.MaxFailedAccessAttempts = 3;
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    options.Lockout.AllowedForNewUsers = true;
+})
+.AddRoles<IdentityRole>()
+.AddEntityFrameworkStores<ApplicationDbContext>();
+
+
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.Cookie.Name = "GreenhouseScada.Auth";
+    options.Cookie.HttpOnly = true;
+    options.ExpireTimeSpan = TimeSpan.FromMinutes(20);
+    options.SlidingExpiration = true;
+    options.LoginPath = "/Identity/Account/Login";
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+});
+
+
+
 builder.Services.AddControllersWithViews();
+
+builder.Services.Configure<Microsoft.AspNetCore.Mvc.RazorPages.RazorPagesOptions>(options =>
+{
+    options.Conventions.AllowAnonymousToAreaPage("Identity", "/Account/Login");
+
+    options.Conventions.AllowAnonymousToAreaPage("Identity", "/Account/Register");
+});
 
 builder.Services.AddAuthorization(options =>
 {
@@ -25,15 +62,33 @@ builder.Services.AddAuthorization(options =>
 
     options.AddPolicy("CanReadSavings", policy =>
     {
-        policy.RequireAuthenticatedUser();
+        policy.RequireRole(AppRoles.Operator, AppRoles.Technician,
+            AppRoles.Admin);
     });
+
+    options.AddPolicy("CanConfigure", policy =>
+    {
+        policy.RequireRole(AppRoles.Technician, AppRoles.Admin);
+    });
+
 });
+
+builder.Services.Configure<SecurityStampValidatorOptions>(options =>
+{
+    options.ValidationInterval = TimeSpan.FromMinutes(1);
+});
+
 
 builder.Services.AddSingleton<LiveValuesCache>();
 builder.Services.AddSingleton<SchemeConfigService>();
 builder.Services.AddHostedService<MqttListener>();
 
 var app = builder.Build();
+
+using (IServiceScope scope = app.Services.CreateScope())
+{
+    await IdentitySeeder.SeedAsync(scope.ServiceProvider);
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

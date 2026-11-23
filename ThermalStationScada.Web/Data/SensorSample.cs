@@ -7,4 +7,5 @@ public class SensorSample
     public double Value { get; set; }
     public string Unit { get; set; } = "";
     public DateTimeOffset MeasuredAtUtc { get; set; }
+    public string SavedBy { get; set; } = String.Empty;
 }
