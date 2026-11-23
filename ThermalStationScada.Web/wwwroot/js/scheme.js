@@ -12,6 +12,11 @@ async function refresh() {
     try {
         const res = await fetch('/Scheme/Current');
 
+        if (res.redirected) {
+            window.location.reload();
+            return;
+        }
+
         if (!res.ok) {
             throw new Error(`HTTP ${res.status}`);
         }
