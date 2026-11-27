@@ -1,18 +1,18 @@
 ﻿namespace Models.Systems;
 
-public class WaterFlowValve
+public class WaterFlowValve : IActuator
 {
-    public bool Open { get; set; }
+    public bool IsOn { get; private set; }
 
-    public void OpenValve()
+    public void TurnOn()
     {
-        Open = true;
-        Console.WriteLine("Valve opened.");
+        IsOn = true;
+        Console.WriteLine("Valve turned on.");
     }
 
-    public void CloseValve()
+    public void TurnOff()
     {
-        Open = false;
-        Console.WriteLine("Valve closed.");
+        IsOn = false;
+        Console.WriteLine("Valve turned off.");
     }
 }

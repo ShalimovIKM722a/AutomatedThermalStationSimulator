@@ -9,12 +9,15 @@ namespace ThermalStationScada.Web.Services
         private static readonly JsonSerializerOptions JsonOptions =
         new JsonSerializerOptions { PropertyNameCaseInsensitive = true };
         private readonly LiveValuesCache _cache;
+        private readonly ActuatorStateCache _actuatorCache;
         private readonly IConfiguration _config;
         private readonly ILogger<MqttListener> _logger;
-        public MqttListener(LiveValuesCache cache, IConfiguration config,
-        ILogger<MqttListener> logger)
+
+        public MqttListener(LiveValuesCache cache, ActuatorStateCache actuatorCache,
+     IConfiguration config, ILogger<MqttListener> logger)
         {
             _cache = cache;
+            _actuatorCache = actuatorCache;
             _config = config;
             _logger = logger;
         }
@@ -46,7 +49,8 @@ namespace ThermalStationScada.Web.Services
             }
             MqttClientSubscribeOptions subscribeOptions =
             factory.CreateSubscribeOptionsBuilder()
-            .WithTopicFilter(_config["Mqtt:TopicFilter"]!)
+            .WithTopicFilter(_config["Mqtt:TopicFilter"])
+            .WithTopicFilter(_config["Mqtt:ActuatorTopicFilter"])
             .Build();
             await client.SubscribeAsync(subscribeOptions, stoppingToken);
             _logger.LogInformation("Підписано на {Filter}",
@@ -86,5 +90,13 @@ namespace ThermalStationScada.Web.Services
             public string Unit { get; set; } = "";
             public DateTimeOffset MeasuredAtUtc { get; set; }
         }
+
+        private class ActuatorPayload
+        {
+            public bool IsOn { get; set; }
+            public string Reason { get; set; } = "";
+            public DateTimeOffset ChangedAtUtc { get; set; }
+        }
+
     }
 }

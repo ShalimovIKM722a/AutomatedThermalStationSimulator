@@ -15,6 +15,10 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
+builder.Services.AddSingleton<LiveValuesCache>();
+builder.Services.AddSingleton<ActuatorStateCache>();
+builder.Services.AddSingleton<SchemeConfigService>();
+builder.Services.AddHostedService<MqttListener>();
 
 builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 {

@@ -10,17 +10,20 @@ namespace ThermalStationScada.Web.Controllers;
 public class SchemeController : Controller
 {
     private readonly LiveValuesCache _cache;
+    private readonly ActuatorStateCache _actuatorCache;
     private readonly SchemeConfigService _scheme;
     private readonly ApplicationDbContext _db;
-    public SchemeController(LiveValuesCache cache, SchemeConfigService
+    public SchemeController(LiveValuesCache cache, ActuatorStateCache actuatorCache, SchemeConfigService
     scheme, ApplicationDbContext db)
     {
         _cache = cache;
         _scheme = scheme;
         _db = db;
+        _actuatorCache = actuatorCache;
     }
     public IActionResult Index()
     {
+        ViewBag.Actuators = _scheme.GetActuators();
         return View(_scheme.GetSensors());
     }
     [HttpGet]
@@ -30,7 +33,6 @@ public class SchemeController : Controller
     }
 
     [HttpPost]
-    [ValidateAntiForgeryToken]
     [Authorize(Policy = "CanReadSavings")]
     public async Task<IActionResult> Save()
     {
@@ -52,6 +54,13 @@ public class SchemeController : Controller
         return RedirectToAction("History");
     }
 
+    [HttpGet]
+    public IActionResult Actuators()
+    {
+        return Json(_actuatorCache.GetAll());
+    }
+
+
     public async Task<IActionResult> History()
     {
         var samples = await _db.SensorSamples.OrderByDescending(s => s.Id)
@@ -59,5 +68,5 @@ public class SchemeController : Controller
                                              .ToListAsync();
 
         return View(samples);
-    }   
+    }
 }

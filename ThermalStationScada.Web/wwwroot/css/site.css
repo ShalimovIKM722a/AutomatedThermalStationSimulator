@@ -1,35 +1,25 @@
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 html {
-  position: relative;
-  min-height: 100%;
+    position: relative;
+    min-height: 100%;
 }
 
 body {
-  margin-bottom: 60px;
+    margin-bottom: 60px;
 }
-
-.form-floating > .form-control-plaintext::placeholder, .form-floating > .form-control::placeholder {
-  color: var(--bs-secondary-color);
-  text-align: end;
-}
-
-.form-floating > .form-control-plaintext:focus::placeholder, .form-floating > .form-control:focus::placeholder {
-  text-align: start;
-}
-
 
 .scheme {
     position: relative;
@@ -39,6 +29,7 @@ body {
     background: url('/img/scheme.png') center / 100% 100% no-repeat;
     border: 1px solid #ccc;
 }
+
 
 .sensor {
     position: absolute;
@@ -60,7 +51,7 @@ body {
     }
 
     .sensor .value {
-        font-size: 16px;
+        font-size: 20px;
         font-weight: bold;
     }
 
@@ -87,38 +78,13 @@ body {
     gap: 16px;
     align-items: flex-start;
 }
-/* годинник у шапці */
-.scada-clock {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    margin-right: 1rem;
-    line-height: 1.1;
-}
-
-    .scada-clock b {
-        font-size: 1.3rem;
-        font-family: Consolas, monospace;
-    }
-
-    .scada-clock small {
-        color: #666;
-    }
-/* схема та календар поруч */
-.scada-page {
-    display: flex;
-    gap: 16px;
-    align-items: flex-start;
-}
-/* календар */
+/* */
 .cal {
     border-collapse: collapse;
     text-align: center;
     background: #fff;
 }
-.calendar-container {
-    flex-shrink: 0;
-}
+
     .cal caption {
         caption-side: top;
         text-align: center;
@@ -127,7 +93,7 @@ body {
     }
 
     .cal th, .cal td {
-        width: 3px;
+        width: 34px;
         padding: 4px;
         border: 1px solid #ddd;
     }
@@ -148,6 +114,79 @@ body {
     }
 
 .sensor.alarm {
-    background: #c0392b;
+    background: #ffd6d6;
     outline: 2px solid #000000;
+}
+
+.actuator {
+    position: absolute;
+    width: 180px;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    border-radius: 6px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, .25);
+    background: #e3e3e3;
+    color: #666;
+    transition: background .3s, color .3s, outline .3s;
+}
+
+    .actuator .icon {
+        display: inline-block;
+        font-size: 28px;
+        line-height: 1;
+        transform-origin: center;
+    }
+
+    .actuator .state {
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    /* Вимкнений механізм */
+    .actuator.off {
+        background: #e3e3e3;
+        color: #666;
+    }
+
+    /* Увімкнений механізм */
+    .actuator.on {
+        background: #d4f5dc;
+        color: #14672b;
+        outline: 2px solid #2e9e4d;
+    }
+
+        /* Активне горіння */
+        .actuator.on[data-kind="fire"] .icon {
+            animation: fire-animation .7s ease-in-out infinite alternate;
+        }
+
+        /* Активна подача води */
+        .actuator.on[data-kind="water"] .icon {
+            animation: water-animation 1s ease-in-out infinite;
+        }
+
+/* Мерехтіння та коливання полум'я */
+@keyframes fire-animation {
+    0% {
+        transform: scale(1) rotate(-5deg);
+        filter: brightness(1);
+    }
+
+    100% {
+        transform: scale(1.2) rotate(5deg);
+        filter: brightness(1.4);
+    }
+}
+
+/* Пульсація клапана */
+@keyframes water-animation {
+    0%, 100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.3);
+    }
 }

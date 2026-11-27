@@ -1,51 +1,45 @@
 ﻿using AutomatedThermalStationSimulator;
 using AutomatedThermalStationSimulator.Mqtt;
+using AutomatedThermalStationSimulator.Systems;
 using Models;
 using MQTTnet;
-using System.Text.Json; 
+using System.Text.Json;
 
 public class Program
 {
     public static async Task Main()
     {
-        SensorConfiguration[] sensors = await CreateSensors();
+        SensorConfiguration[] sensors = CreateSensors();
+        ActuatorConfiguration[] actuators = CreateActuators(sensors);
 
         var factory = new MqttClientFactory();
         using var mqttClient = factory.CreateMqttClient();
 
-        try
-        {
-            var options = new MqttClientOptionsBuilder()
-                .WithTcpServer("127.0.0.1", 1883)
-                .Build();
+        var options = new MqttClientOptionsBuilder()
+            .WithTcpServer("127.0.0.1", 1883)
+            .Build();
 
-            await mqttClient.ConnectAsync(options);
-            Console.WriteLine("Connected to MQTT broker.");
+        await mqttClient.ConnectAsync(options);
+        Console.WriteLine("Connected to MQTT broker.");
 
-            await RunSimulationAsync(mqttClient, sensors);
+        await RunSimulationAsync(mqttClient, sensors, actuators);
 
-            await mqttClient.DisconnectAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Error: {ex.Message}");
-        }
+        await mqttClient.DisconnectAsync();
     }
 
-    private static async Task<SensorConfiguration[]> CreateSensors()
+    private static SensorConfiguration[] CreateSensors()
     {
         var attorch = new AttorchCoulometer(
-           "192.168.1.226",
-           "yoOpb8-vX_b:xr~F"
-        );
+          "192.168.1.226",
+          "yoOpb8-vX_b:xr~F"
+       );
         _ = attorch.StartAsync(
         connectionTimeoutSeconds: 5,
         retryDelayMilliseconds: 3000,
         pollingIntervalMilliseconds: 1000);
-
         return
-        [
-            new (
+       [
+           new (
                 new BoilerTemperatureSensor("Boiler temperature"),
                 "thermalStation/1/sensors/boiler/temperature",
                 "°C"),
@@ -89,12 +83,41 @@ public class Program
                 new OutputFlowMeterSensor("Water flow"),
                 "thermalStation/1/sensors/boiler/outputFlow",
                 "L/min")
+       ];
+    }
+
+    private static ActuatorConfiguration[] CreateActuators(
+    SensorConfiguration[] sensors)
+    {
+        Sensor boilerTemperature = sensors[0].Sensor;
+        Sensor waterLevel = sensors[2].Sensor;
+
+        return
+        [
+            new(
+            "FuelCombustion",
+            new FuelCombustion(),
+            boilerTemperature,
+            "thermalStation/1/actuators/fuelCombustion/state",
+            onLevel: 1,
+            offLevel: 80,
+            onWhenAbove: false),
+
+        new(
+            "WaterFlowValve",
+            new WaterFlowValve(),
+            waterLevel,
+            "thermalStation/1/actuators/waterFlowValve/state",
+            onLevel: 2,
+            offLevel: 70,
+            onWhenAbove: false)
         ];
     }
 
     private static async Task RunSimulationAsync(
         IMqttClient mqttClient,
-        SensorConfiguration[] sensors)
+        SensorConfiguration[] sensors,
+        ActuatorConfiguration[] actuators)
     {
         for (int iteration = 1; ; iteration++)
         {
@@ -102,17 +125,12 @@ public class Program
 
             foreach (var sensor in sensors)
             {
-                try
-                {
-                    await PublishSensorReadingAsync(
-                        mqttClient,
-                        sensor);
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine(
-                        $"Error reading {sensor.Topic}: {ex.Message}");
-                }
+                await PublishSensorReadingAsync(mqttClient, sensor);
+            }
+
+            foreach (var actuator in actuators)
+            {
+                await UpdateActuatorAsync(mqttClient, actuator);
             }
 
             Console.WriteLine();
@@ -129,7 +147,6 @@ public class Program
         string payload = JsonSerializer.Serialize(new
         {
             value = Math.Round(configuration.Sensor.Value, 2),
-            unit = configuration.Unit,
             measuredAtUtc = DateTimeOffset.UtcNow
         });
 
@@ -140,7 +157,37 @@ public class Program
 
         await mqttClient.PublishAsync(message);
 
-        Console.WriteLine(
-            $"Published {configuration.Topic} -> {payload}");
+        Console.WriteLine($"Published {configuration.Topic} -> {payload}");
+    }
+
+    private static async Task UpdateActuatorAsync(
+        IMqttClient mqttClient,
+        ActuatorConfiguration configuration)
+    {
+        string? reason = configuration.Evaluate();
+        bool isOn = true;
+
+        if (reason is null && configuration.PublishedState == isOn)
+        {
+            return;
+        }
+
+        string payload = JsonSerializer.Serialize(new
+        {
+            isOn = true,
+            reason = reason ?? "initial state",
+            changedAtUtc = DateTimeOffset.UtcNow
+        });
+
+        var message = new MqttApplicationMessageBuilder()
+            .WithTopic(configuration.Topic)
+            .WithPayload(payload)
+            .WithRetainFlag()
+            .Build();
+
+        await mqttClient.PublishAsync(message);
+        configuration.PublishedState = isOn;
+
+        Console.WriteLine($"Published {configuration.Topic} -> {payload}");
     }
 }
